@@ -17,7 +17,7 @@ def cp(src):
 
 def main():
     args = {
-        "build": "./node_modules/.bin/grunt",
+        "build": "./node_modules/grunt/bin/grunt",
         "version": DEFAULT_VERSION if len(sys.argv) is 1 else sys.argv[1],
     }
     subprocess.call(["mkdir -p ./jquery/static/jquery"], shell=True)

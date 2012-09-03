@@ -24,9 +24,7 @@ can use this oneliner to add it as well:
 Build
 -----
 To build this, you need to have the jQuery `build tool chain`_ configured.
-Once that is initialized, you can run ``python build.py``.  It's a simple
-script, feel free to dig in.
-
+See ``support/build.py`` for more information on how data is transferred from the submodule to the Python package.
 
 .. _django-staticfiles: https://github.com/jezdez/django-staticfiles
 .. _pip: http://www.pip-installer.org/
