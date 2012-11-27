@@ -22,7 +22,7 @@ def main():
     }
     subprocess.call(["mkdir -p ./jquery/static/jquery"], shell=True)
     subprocess.call(
-            ["cd vendor/jquery && git checkout %(version)s && %(build)s" %
+            ["cd vendor/jquery && git fetch origin && git submodule update && git checkout %(version)s && %(build)s" %
                 args],
             shell=True)
     cp("dist/*")
