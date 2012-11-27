@@ -5,7 +5,7 @@ it as a Django app for use with Django staticfiles.
 import subprocess
 import sys
 
-DEFAULT_VERSION = "1.8.2"
+DEFAULT_VERSION = "1.8.3"
 
 
 def cp(src):
