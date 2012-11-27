@@ -1,5 +1,5 @@
 /*!
- * jQuery JavaScript Library v1.8.1
+ * jQuery JavaScript Library v1.8.2
  * http://jquery.com/
  *
  * Includes Sizzle.js
@@ -9,7 +9,7 @@
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: Fri Aug 31 2012 16:52:13 GMT-0500 (CDT)
+ * Date: Tue Nov 27 2012 14:45:42 GMT-0600 (CST)
  */
 (function( window, undefined ) {
 var
@@ -186,7 +186,7 @@ jQuery.fn = jQuery.prototype = {
 	selector: "",
 
 	// The current version of jQuery being used
-	jquery: "1.8.1",
+	jquery: "1.8.2",
 
 	// The default length of a jQuery object is 0
 	length: 0,
@@ -573,7 +573,7 @@ jQuery.extend({
 	},
 
 	nodeName: function( elem, name ) {
-		return elem.nodeName && elem.nodeName.toUpperCase() === name.toUpperCase();
+		return elem.nodeName && elem.nodeName.toLowerCase() === name.toLowerCase();
 	},
 
 	// args is for internal usage only
@@ -630,7 +630,7 @@ jQuery.extend({
 		function( text ) {
 			return text == null ?
 				"" :
-				text.toString().replace( rtrim, "" );
+				( text + "" ).replace( rtrim, "" );
 		},
 
 	// results is for internal usage only
@@ -776,7 +776,7 @@ jQuery.extend({
 		};
 
 		// Set the guid of unique handler to the same of original handler, so it can be removed
-		proxy.guid = fn.guid = fn.guid || proxy.guid || jQuery.guid++;
+		proxy.guid = fn.guid = fn.guid || jQuery.guid++;
 
 		return proxy;
 	},
@@ -1143,7 +1143,7 @@ jQuery.extend({
 				// Get a promise for this deferred
 				// If obj is provided, the promise aspect is added to the object
 				promise: function( obj ) {
-					return typeof obj === "object" ? jQuery.extend( obj, promise ) : promise;
+					return obj != null ? jQuery.extend( obj, promise ) : promise;
 				}
 			},
 			deferred = {};
@@ -1262,7 +1262,7 @@ jQuery.support = (function() {
 	a.style.cssText = "top:1px;float:left;opacity:.5";
 
 	// Can't get basic test support
-	if ( !all || !all.length || !a ) {
+	if ( !all || !all.length ) {
 		return {};
 	}
 
@@ -1513,7 +1513,7 @@ jQuery.extend({
 
 	deletedIds: [],
 
-	// Please use with caution
+	// Remove at next major release (1.9/2.0)
 	uuid: 0,
 
 	// Unique for each copy of jQuery on the page
@@ -1565,7 +1565,7 @@ jQuery.extend({
 			// Only DOM nodes need a new unique ID for each element since their data
 			// ends up in the global cache
 			if ( isNode ) {
-				elem[ internalKey ] = id = jQuery.deletedIds.pop() || ++jQuery.uuid;
+				elem[ internalKey ] = id = jQuery.deletedIds.pop() || jQuery.guid++;
 			} else {
 				id = internalKey;
 			}
@@ -1739,7 +1739,7 @@ jQuery.fn.extend({
 					for ( l = attr.length; i < l; i++ ) {
 						name = attr[i].name;
 
-						if ( name.indexOf( "data-" ) === 0 ) {
+						if ( !name.indexOf( "data-" ) ) {
 							name = jQuery.camelCase( name.substring(5) );
 
 							dataAttr( elem, name, data[ name ] );
@@ -2049,7 +2049,7 @@ jQuery.fn.extend({
 						setClass = " " + elem.className + " ";
 
 						for ( c = 0, cl = classNames.length; c < cl; c++ ) {
-							if ( !~setClass.indexOf( " " + classNames[ c ] + " " ) ) {
+							if ( setClass.indexOf( " " + classNames[ c ] + " " ) < 0 ) {
 								setClass += classNames[ c ] + " ";
 							}
 						}
@@ -2082,7 +2082,7 @@ jQuery.fn.extend({
 					// loop over each item in the removal list
 					for ( c = 0, cl = removes.length; c < cl; c++ ) {
 						// Remove until there is nothing to remove,
-						while ( className.indexOf(" " + removes[ c ] + " ") > -1 ) {
+						while ( className.indexOf(" " + removes[ c ] + " ") >= 0 ) {
 							className = className.replace( " " + removes[ c ] + " " , " " );
 						}
 					}
@@ -2136,7 +2136,7 @@ jQuery.fn.extend({
 			i = 0,
 			l = this.length;
 		for ( ; i < l; i++ ) {
-			if ( this[i].nodeType === 1 && (" " + this[i].className + " ").replace(rclass, " ").indexOf( className ) > -1 ) {
+			if ( this[i].nodeType === 1 && (" " + this[i].className + " ").replace(rclass, " ").indexOf( className ) >= 0 ) {
 				return true;
 			}
 		}
@@ -2314,7 +2314,7 @@ jQuery.extend({
 				return ret;
 
 			} else {
-				elem.setAttribute( name, "" + value );
+				elem.setAttribute( name, value + "" );
 				return value;
 			}
 
@@ -2578,7 +2578,7 @@ if ( !jQuery.support.style ) {
 			return elem.style.cssText.toLowerCase() || undefined;
 		},
 		set: function( elem, value ) {
-			return ( elem.style.cssText = "" + value );
+			return ( elem.style.cssText = value + "" );
 		}
 	};
 }
@@ -2711,6 +2711,7 @@ jQuery.event = {
 				handler: handler,
 				guid: handler.guid,
 				selector: selector,
+				needsContext: selector && jQuery.expr.match.needsContext.test( selector ),
 				namespace: namespaces.join(".")
 			}, handleObjIn );
 
@@ -2946,7 +2947,7 @@ jQuery.event = {
 			}
 			// Note that this is a bare JS function and not a jQuery handler
 			handle = ontype && cur[ ontype ];
-			if ( handle && jQuery.acceptData( cur ) && handle.apply( cur, data ) === false ) {
+			if ( handle && jQuery.acceptData( cur ) && handle.apply && handle.apply( cur, data ) === false ) {
 				event.preventDefault();
 			}
 		}
@@ -2994,7 +2995,7 @@ jQuery.event = {
 		var i, j, cur, ret, selMatch, matched, matches, handleObj, sel, related,
 			handlers = ( (jQuery._data( this, "events" ) || {} )[ event.type ] || []),
 			delegateCount = handlers.delegateCount,
-			args = [].slice.call( arguments ),
+			args = core_slice.call( arguments ),
 			run_all = !event.exclusive && !event.namespace,
 			special = jQuery.event.special[ event.type ] || {},
 			handlerQueue = [];
@@ -3023,7 +3024,9 @@ jQuery.event = {
 						sel = handleObj.selector;
 
 						if ( selMatch[ sel ] === undefined ) {
-							selMatch[ sel ] = jQuery( sel, this ).index( cur ) >= 0;
+							selMatch[ sel ] = handleObj.needsContext ?
+								jQuery( sel, this ).index( cur ) >= 0 :
+								jQuery.find( sel, this, null, [ cur ] ).length;
 						}
 						if ( selMatch[ sel ] ) {
 							matches.push( handleObj );
@@ -3593,7 +3596,7 @@ jQuery.fn.extend({
 	},
 	undelegate: function( selector, types, fn ) {
 		// ( namespace ) or ( selector, types [, fn] )
-		return arguments.length == 1? this.off( selector, "**" ) : this.off( types, selector || "**", fn );
+		return arguments.length === 1 ? this.off( selector, "**" ) : this.off( types, selector || "**", fn );
 	},
 
 	trigger: function( type, data ) {
@@ -7123,10 +7126,10 @@ function buildParams( prefix, obj, traditional, add ) {
 		add( prefix, obj );
 	}
 }
-var // Document location
-	ajaxLocation,
-	// Document location segments
+var
+	// Document location
 	ajaxLocParts,
+	ajaxLocation,
 
 	rhash = /#.*$/,
 	rheaders = /^(.*?):[ \t]*([^\r\n]*)\r?$/mg, // IE leaves an \r character at EOL
@@ -7643,7 +7646,7 @@ jQuery.extend({
 
 			// Set data for the fake xhr object
 			jqXHR.status = status;
-			jqXHR.statusText = "" + ( nativeStatusText || statusText );
+			jqXHR.statusText = ( nativeStatusText || statusText ) + "";
 
 			// Success/Error
 			if ( isSuccess ) {
@@ -7703,14 +7706,11 @@ jQuery.extend({
 		// Extract dataTypes list
 		s.dataTypes = jQuery.trim( s.dataType || "*" ).toLowerCase().split( core_rspace );
 
-		// Determine if a cross-domain request is in order
+		// A cross-domain request is in order when we have a protocol:host:port mismatch
 		if ( s.crossDomain == null ) {
-			parts = rurl.exec( s.url.toLowerCase() );
-			s.crossDomain = !!( parts &&
-				( parts[ 1 ] != ajaxLocParts[ 1 ] || parts[ 2 ] != ajaxLocParts[ 2 ] ||
-					( parts[ 3 ] || ( parts[ 1 ] === "http:" ? 80 : 443 ) ) !=
-						( ajaxLocParts[ 3 ] || ( ajaxLocParts[ 1 ] === "http:" ? 80 : 443 ) ) )
-			);
+			parts = rurl.exec( s.url.toLowerCase() ) || false;
+			s.crossDomain = parts && ( parts.join(":") + ( parts[ 3 ] ? "" : parts[ 1 ] === "http:" ? 80 : 443 ) ) !==
+				( ajaxLocParts.join(":") + ( ajaxLocParts[ 3 ] ? "" : ajaxLocParts[ 1 ] === "http:" ? 80 : 443 ) );
 		}
 
 		// Convert data if not already a string
@@ -8405,12 +8405,13 @@ var fxNow, timerId,
 	animationPrefilters = [ defaultPrefilter ],
 	tweeners = {
 		"*": [function( prop, value ) {
-			var end, unit, prevScale,
+			var end, unit,
 				tween = this.createTween( prop, value ),
 				parts = rfxnum.exec( value ),
 				target = tween.cur(),
 				start = +target || 0,
-				scale = 1;
+				scale = 1,
+				maxIterations = 20;
 
 			if ( parts ) {
 				end = +parts[2];
@@ -8426,17 +8427,15 @@ var fxNow, timerId,
 					do {
 						// If previous iteration zeroed out, double until we get *something*
 						// Use a string for doubling factor so we don't accidentally see scale as unchanged below
-						prevScale = scale = scale || ".5";
+						scale = scale || ".5";
 
 						// Adjust and apply
 						start = start / scale;
 						jQuery.style( tween.elem, prop, start + unit );
 
-						// Update scale, tolerating zeroes from tween.cur()
-						scale = tween.cur() / target;
-
-					// Stop looping if we've hit the mark or scale is unchanged
-					} while ( scale !== 1 && scale !== prevScale );
+					// Update scale, tolerating zero or NaN from tween.cur()
+					// And breaking the loop if scale is unchanged or perfect, or if we've just had enough
+					} while ( scale !== (scale = tween.cur() / target) && scale !== 1 && --maxIterations );
 				}
 
 				tween.unit = unit;
@@ -9069,7 +9068,8 @@ jQuery.fn.offset = function( options ) {
 			});
 	}
 
-	var box, docElem, body, win, clientTop, clientLeft, scrollTop, scrollLeft, top, left,
+	var docElem, body, win, clientTop, clientLeft, scrollTop, scrollLeft,
+		box = { top: 0, left: 0 },
 		elem = this[ 0 ],
 		doc = elem && elem.ownerDocument;
 
@@ -9083,21 +9083,25 @@ jQuery.fn.offset = function( options ) {
 
 	docElem = doc.documentElement;
 
-	// Make sure we're not dealing with a disconnected DOM node
+	// Make sure it's not a disconnected DOM node
 	if ( !jQuery.contains( docElem, elem ) ) {
-		return { top: 0, left: 0 };
+		return box;
 	}
 
-	box = elem.getBoundingClientRect();
+	// If we don't have gBCR, just use 0,0 rather than error
+	// BlackBerry 5, iOS 3 (original iPhone)
+	if ( typeof elem.getBoundingClientRect !== "undefined" ) {
+		box = elem.getBoundingClientRect();
+	}
 	win = getWindow( doc );
 	clientTop  = docElem.clientTop  || body.clientTop  || 0;
 	clientLeft = docElem.clientLeft || body.clientLeft || 0;
 	scrollTop  = win.pageYOffset || docElem.scrollTop;
 	scrollLeft = win.pageXOffset || docElem.scrollLeft;
-	top  = box.top  + scrollTop  - clientTop;
-	left = box.left + scrollLeft - clientLeft;
-
-	return { top: top, left: left };
+	return {
+		top: box.top  + scrollTop  - clientTop,
+		left: box.left + scrollLeft - clientLeft
+	};
 };
 
 jQuery.offset = {
